@@ -1,5 +1,8 @@
-import javax.swing.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class CSV {
@@ -41,16 +44,18 @@ public class CSV {
                 escritor.newLine();
             }
 
-            JOptionPane.showMessageDialog(null, "Archivo CSV generado correctamente");
+            System.out.println("Archivo CSV generado correctamente");
+
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         } finally {
             try {
                 if (lector != null) lector.close();
                 if (escritor != null) escritor.close();
             } catch (IOException e) {
-                JOptionPane.showMessageDialog(null, e.getMessage());
+                System.out.println("Error al cerrar archivos: " + e.getMessage());
+
             }
         }
     }

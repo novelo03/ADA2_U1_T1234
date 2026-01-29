@@ -6,10 +6,14 @@ public class Main {
     public static void main(String[] args) {
         CSV archivo = new CSV();
 
-        Login.cargarCredenciales("claves(Sheet1).csv");
+        Login.cargarCredenciales("./claves(Sheet1).csv");
         Login.solicitarUsuario();
         Login.solicitarContraseña();
 
-        archivo.generarCSV("Book 1(Sheet1).csv", "prueba");
+        archivo.generarCSV("./Book 1(Sheet1).csv", "./prueba");
+
+        // Generar PDF con los datos del CSV
+        GenerarPDF pdf = new GenerarPDF();
+        pdf.generarPDF("./prueba", "./calificaciones.pdf");
     }
 }
