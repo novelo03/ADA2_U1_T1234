@@ -48,7 +48,7 @@ public class Login extends Application {
     @Override
     public void start(Stage stage) {
 
-        cargarCredenciales("usuarios.csv");
+        cargarCredenciales("./claves.csv");
 
         TextField txtUsuario = new TextField();
         txtUsuario.setPromptText("Usuario");

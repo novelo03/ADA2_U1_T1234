@@ -56,13 +56,17 @@ public class GenerarPDF {
             contenido.setFont(PDType1Font.HELVETICA, 10);
 
             while ((linea = lector.readLine()) != null) {
-                String[] datos = linea.split(",");
+                // Usar -1 para incluir elementos vacíos al final
+                String[] datos = linea.split(",", -1);
                 
-                if (datos.length >= 4) {
+                if (datos.length >= 3) {
                     String matricula = datos[0];
                     String nombre = datos[1];
                     String asignatura = datos[2];
-                    String calificacion = datos[3];
+                    String calificacionRaw = datos.length >= 4 ? datos[3] : "";
+                    
+                    // Si está vacío, mostrar "S/C" (Sin Calificación)
+                    String calificacion = calificacionRaw.trim().isEmpty() ? "S/C" : calificacionRaw;
 
                     contenido.beginText();
                     contenido.newLineAtOffset(50, yPosition);

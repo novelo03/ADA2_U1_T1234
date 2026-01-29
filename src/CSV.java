@@ -2,6 +2,7 @@ import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 import java.io.BufferedReader;
@@ -91,16 +92,43 @@ public class CSV {
 
         lblAlumno.setText("Alumno: " + nombreCompleto);
         txtCalificacion.clear();
+        
+        // Verificar si es el último alumno
+        try {
+            lector.mark(1000); // Marcar posición actual
+            String siguienteLinea = lector.readLine();
+            lector.reset(); // Volver a la posición marcada
+            
+            if (siguienteLinea == null) {
+                btnSiguiente.setText("Guardar CSV");
+            } else {
+                btnSiguiente.setText("Guardar / Siguiente");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void guardarCalificacion() {
         try {
-            int calificacion = Integer.parseInt(txtCalificacion.getText());
+            String calificacionTexto = txtCalificacion.getText().trim();
+            String calificacion = "";
 
-            if (calificacion < 1 || calificacion > 100) {
-                mostrarError("La calificación debe estar entre 1 y 100");
-                return;
+            // Si no está vacío, validar que sea un número entre 1-100
+            if (!calificacionTexto.isEmpty()) {
+                try {
+                    int cal = Integer.parseInt(calificacionTexto);
+                    if (cal < 1 || cal > 100) {
+                        mostrarError("La calificación debe estar entre 1 y 100");
+                        return;
+                    }
+                    calificacion = String.valueOf(cal);
+                } catch (NumberFormatException e) {
+                    mostrarError("Ingrese un número válido o déjelo en blanco");
+                    return;
+                }
             }
+            // Si está vacío, se guarda como vacío (S/C en PDF)
 
             String asignatura = txtAsignatura.getText();
             if (asignatura.isEmpty()) {
@@ -126,13 +154,56 @@ public class CSV {
 
             // Leer siguiente alumno
             lineaActual = lector.readLine();
-            mostrarAlumnoActual();
+            
+            if (lineaActual == null) {
+                escritor.close();
+                lector.close();
+                mostrarVentanaFinal();
+            } else {
+                mostrarAlumnoActual();
+            }
 
-        } catch (NumberFormatException e) {
-            mostrarError("Ingrese un número válido");
         } catch (Exception e) {
-            mostrarError("Error al guardar");
+            mostrarError("Error al guardar: " + e.getMessage());
         }
+    }
+
+    private void mostrarVentanaFinal() {
+        Stage stageFinal = new Stage();
+        stageFinal.setTitle("Operaciones finales");
+
+        Label lbl = new Label("Captura de datos completada.\n¿Deseas generar PDF?");
+        Button btnGenerarPDF = new Button("Generar PDF");
+        Button btnCerrar = new Button("Cerrar");
+
+        btnGenerarPDF.setStyle("-fx-font-size: 12px; -fx-padding: 10px;");
+        btnCerrar.setStyle("-fx-font-size: 12px; -fx-padding: 10px;");
+
+        Label lblEstado = new Label("");
+        lblEstado.setStyle("-fx-text-fill: green;");
+
+        btnGenerarPDF.setOnAction(e -> {
+            GenerarPDF pdf = new GenerarPDF();
+            pdf.generarPDF("./resultado.csv", "./calificaciones.pdf");
+            
+            Alert alerta = new Alert(Alert.AlertType.INFORMATION);
+            alerta.setTitle("Éxito");
+            alerta.setContentText("PDF generado correctamente en: ./calificaciones.pdf");
+            alerta.showAndWait();
+            lblEstado.setText("✓ PDF generado");
+        });
+
+        btnCerrar.setOnAction(e -> stageFinal.close());
+
+        VBox botonesLayout = new VBox(10, btnGenerarPDF, btnCerrar);
+        botonesLayout.setStyle("-fx-alignment: center;");
+        
+        VBox layout = new VBox(15, lbl, botonesLayout, lblEstado);
+        layout.setPadding(new Insets(20));
+        layout.setStyle("-fx-alignment: center;");
+
+        stageFinal.setScene(new Scene(layout, 350, 220));
+        stageFinal.show();
     }
 
     private void mostrarError(String mensaje) {
