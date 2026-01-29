@@ -1,23 +1,19 @@
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.Objects;
-import java.util.Scanner;
 
-public class Login {
-
-    static Scanner scanner = new Scanner(System.in);
+public class Login extends Application {
 
     static String usuarioCSV;
     static String contrasenaCifradaCSV;
 
-    /**
-     * Funcion para descifrar las contraseñas guardadas en el CSV: claves.
-     * Las claves estan guardadas con el cifrado Cesar +2, por ejemplo, la contraseña 1234;
-     * en el CSV estara guardada como: 3456
-     *
-     * @param texto: la contraseña que ingresa el usuario se le pasa como parametro
-     * @return: devolvemos la contraseña ingresada con cifrado para comparar con la del CSV
-     */
+    // ===== CIFRADO CESAR +2 =====
     public static String cifrarCesar(String texto) {
         StringBuilder resultado = new StringBuilder();
 
@@ -33,42 +29,57 @@ public class Login {
         return resultado.toString();
     }
 
-    // ===== LECTURA DEL CSV =====
+    // ===== LECTURA CSV =====
     public static void cargarCredenciales(String ruta) {
         try (BufferedReader br = new BufferedReader(new FileReader(ruta))) {
 
-            br.readLine(); // ignorar encabezados
+            br.readLine(); // encabezado
             String linea = br.readLine();
-
             String[] datos = linea.split(",");
 
-            usuarioCSV = datos[0];
-            contrasenaCifradaCSV = datos[1];
+            usuarioCSV = datos[0].trim();
+            contrasenaCifradaCSV = datos[1].trim();
 
         } catch (Exception e) {
-            System.out.println("Error al leer el archivo CSV");
+            System.out.println("Error al leer CSV");
         }
     }
 
-    // ===== VALIDAR USUARIO =====
-    public static void solicitarUsuario() {
-        System.out.print("Ingrese el usuario: ");
-        while (!Objects.equals(scanner.nextLine(), usuarioCSV)) {
-            System.out.print("Usuario no registrado, intente de nuevo: ");
-        }
-    }
+    @Override
+    public void start(Stage stage) {
 
-    // ===== VALIDAR CONTRASENA =====
-    public static void solicitarContraseña() {
-        System.out.print("Ingrese la contraseña: ");
-        while (true) {
-            String entrada = scanner.nextLine();
-            String entradaCifrada = cifrarCesar(entrada);
+        cargarCredenciales("usuarios.csv");
 
-            if (entradaCifrada.equals(contrasenaCifradaCSV)) {
-                break;
+        TextField txtUsuario = new TextField();
+        txtUsuario.setPromptText("Usuario");
+
+        PasswordField txtPassword = new PasswordField();
+        txtPassword.setPromptText("Contraseña");
+
+        Label mensaje = new Label();
+
+        Button btnLogin = new Button("Iniciar sesión");
+
+        btnLogin.setOnAction(e -> {
+            String usuarioIngresado = txtUsuario.getText();
+            String passwordIngresado = txtPassword.getText();
+            String cifrada = cifrarCesar(passwordIngresado);
+
+            if (usuarioIngresado.equals(usuarioCSV) && cifrada.equals(contrasenaCifradaCSV)) {
+                CSV csv = new CSV();
+                csv.abrirVentanaPrincipal();
+                stage.close();
+
+            } else {
+                mensaje.setText("Usuario o contraseña incorrectos");
             }
-            System.out.print("Contraseña incorrecta, intente de nuevo: ");
-        }
+        });
+
+        VBox layout = new VBox(10, txtUsuario, txtPassword, btnLogin, mensaje);
+        layout.setPadding(new Insets(20));
+
+        stage.setTitle("Login");
+        stage.setScene(new Scene(layout, 300, 220));
+        stage.show();
     }
 }
